@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.test.port.BrandMapper">
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id"><!-- 主键id返回 -->
+        insert into tb_brand(brand_name,company_name,ordered,description,status)
+        values(#{brand_name},#{company_name},#{ordered},#{description},#{status});
+    </insert>
+
+    <update id="update">
+        update tb_brand
+       <set>
+           <if test="brand_name != null and brand_name !='' ">
+               brand_name = #{brand_name},
+           </if>
+           <if test="company_name != null and company_name !='' ">
+               company_name = #{company_name},
+           </if>
+           <if test="ordered != null">
+               ordered  = #{ordered},
+           </if>
+           <if test="description != null and description !='' ">
+               description = #{description},
+           </if>
+           <if test="status != null">
+               status = #{status}
+           </if>
+       </set>
+        where id = #{id};
+    </update>
+
+    <delete id="deleteById">
+        delete from tb_brand where id = #{id};
+    </delete>
+
+    <delete id="deleteByIds">
+        delete from tb_brand
+        where id in
+        <foreach collection="ids" item="id" separator=","  open="(" close=")" >
+            #{id}
+        </foreach>;
+    </delete>
+
+
+    <select id="selectAll" resultType="brand">
+                select *
+                from tb_brand;
+        </select>
+        <!--    参数占位符
+                1.#{}:会将其替换为？，为了防止SQL注入
+                2.${}:拼sql，会存在sql注入问题
+                参数传递的时候1
+                表名或列名不固定的时候2
+
+                参数类型可以省略
+                特殊字符CDATA区
+                -->
+        <select id="selectById" resultType="brand">
+                select *
+                from tb_brand where id
+                <![CDATA[<]]>
+                #{id};
+        </select>
+        <!--  条件查询
+         <select id="selectByCondition" resultType="com.test.pojo.Brand">
+                select *
+                from tb_brand
+                where
+                        status = #{status}
+                        and company_name like #{companyName}
+                        and brand_name like #{brandName}
+        </select>
+        -->
+        <!-- 动态条件查询
+                if 和 where标签
+        -->
+        <select id="selectByCondition" resultType="brand">
+                select *
+                from tb_brand
+               <where>
+                        <if test="status != null">
+                                and status = #{status}
+                        </if>
+                        <if test="companyName != null and companyName !='' ">
+                                and company_name like #{companyName}
+                        </if>
+                        <if test="brandName != null and brandName !='' ">
+                                and brand_name like #{brandName}
+                        </if>
+               </where>
+        </select>
+
+    <!-- 动态单条件查询
+
+   -->
+    <select id="selectByConditionSingle" resultType="brand">
+        select *
+        from tb_brand
+        <where>
+            <choose><!--      相当于switch          -->
+                <when test="status != null"><!--      相当于case          -->
+                     status = #{status}
+                </when>
+                <when test="companyName != null and companyName !='' ">
+                    company_name like #{companyName}
+                </when>
+                <when test="brandName != null and brandName !='' ">
+                    brand_name like #{brandName}
+                </when>
+                <otherwise>
+                </otherwise>
+            </choose>
+
+        </where>
+    </select>
+
+</mapper>
